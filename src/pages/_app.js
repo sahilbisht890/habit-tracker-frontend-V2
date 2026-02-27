@@ -3,6 +3,7 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
+import Head from "next/head";
 import store from "@/components/store";
 import { checkAuth } from "@/components/store/slices/userSlice";
 
@@ -38,6 +39,13 @@ const AppContent = ({ Component, pageProps }) => {
 
   return (
     <>
+      <Head>
+        <title>Tracko</title>
+        <meta name="application-name" content="Tracko" />
+        <link rel="icon" href="/images/logo.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/images/logo.svg" />
+      </Head>
       <Component {...pageProps} />
       <Toaster
         position="top-right"

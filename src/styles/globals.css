@@ -31,12 +31,14 @@ body {
   color: #e2e8f0;
 }
 
+
 .authbg {
-  background: url("/images/authbg.webp");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(255, 214, 165, 0.45), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(255, 182, 193, 0.45), transparent 55%),
+    linear-gradient(140deg, #fff7ed 0%, #ffe4e6 45%, #e0f2fe 100%);
 }
+
 .authform input:-webkit-autofill,
 .authform input:-webkit-autofill:hover,
 .authform input:-webkit-autofill:focus {

@@ -78,6 +78,25 @@ export default function AuthPage() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const apiBase =
+        process.env.NEXT_PUBLIC_APP_API_BASE_URL || "http://localhost:5000/api";
+      await axios.post(
+        `${apiBase}/auth/google-login`,
+        {
+          idToken: credentialResponse.credential,
+        },
+        { withCredentials: true }
+      );
+      await dispatch(checkAuth());
+      toast.success("Login Successful!");
+      router.push("/");
+    } catch (error) {
+      toast.error("Google login failed");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center authbg px-4">
       {/* Toaster */}
@@ -99,27 +118,9 @@ export default function AuthPage() {
         </div>
         {/* Google Login Button */}
         <div className="mb-4 flex w-full justify-center">
-          <div className="w-full rounded-full border border-white/30 bg-white/10 px-3 py-2 text-white">
+          <div className="w-full rounded-full flex items-center justify-center ">
             <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                try {
-                  const apiBase =
-                    process.env.NEXT_PUBLIC_APP_API_BASE_URL ||
-                    "http://localhost:5000/api";
-                  await axios.post(
-                    `${apiBase}/auth/google-login`,
-                    {
-                      idToken: credentialResponse.credential,
-                    },
-                    { withCredentials: true }
-                  );
-                  await dispatch(checkAuth());
-                  toast.success("Login Successful!");
-                  router.push("/");
-                } catch (error) {
-                  toast.error("Google login failed");
-                }
-              }}
+              onSuccess={handleGoogleSuccess}
               onError={() => console.log("Login Failed")}
               theme="outline"
               size="large"
