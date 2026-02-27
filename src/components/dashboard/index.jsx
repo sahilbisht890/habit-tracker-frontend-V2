@@ -38,6 +38,9 @@ const Dashboard = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteType, setDeleteType] = useState(null);
   const [hasLoadedHabits, setHasLoadedHabits] = useState(false);
+  const [progressDrafts, setProgressDrafts] = useState({});
+  const [progressSaving, setProgressSaving] = useState({});
+  const [progressCommitTimers, setProgressCommitTimers] = useState({});
 
   const [selectedDate, setSelectedDate] = useState(
     dayjs().format("YYYY-MM-DD")
@@ -122,7 +125,8 @@ const Dashboard = () => {
         dispatch(fetchTrackedHabits(selectedDate));
       }
     } catch (error) {
-      const message = error?.response?.data?.message || "Operation failed";
+      console.error("Habit submit error:", error);
+      const message = error?.message || "Operation failed";
       toast.error(message);
       throw message;
     } finally {
@@ -133,19 +137,6 @@ const Dashboard = () => {
   const handleEditHabit = (habit) => {
     setSelectedHabit(habit);
     setModalType("update");
-    setModalOpen(true);
-  };
-
-  const handleEditProgress = (trackedHabit) => {
-    const habitMeta = resolveTrackedHabit(trackedHabit) || {};
-    setSelectedTracked(trackedHabit);
-    setSelectedHabit({
-      name: habitMeta.name,
-      dailyGoal: habitMeta.dailyGoal,
-      unit: habitMeta.unit,
-      progress: trackedHabit?.progress ?? 0,
-    });
-    setModalType("edit");
     setModalOpen(true);
   };
 
@@ -206,6 +197,66 @@ const Dashboard = () => {
       dispatch(fetchTrackedHabits(selectedDate));
     } catch (error) {
       toast.error("Failed to add habit");
+    }
+  };
+
+  const normalizeId = (value) => {
+    if (!value) return null;
+    if (typeof value === "object") return value._id || value.id || null;
+    return value;
+  };
+
+  const getTrackedHabitId = (item) => normalizeId(item?._id || item?.id || item);
+  const getHabitIdForTracked = (habitMeta, item) =>
+    normalizeId(habitMeta || item?.habitId || item?.habit);
+
+  const handleProgressChange = (trackedId, value) => {
+    setProgressDrafts((prev) => ({
+      ...prev,
+      [trackedId]: value,
+    }));
+  };
+
+  const handleProgressCommit = async (item, dailyGoal, progressOverride, forceComplete = false) => {
+    const trackedId = getTrackedHabitId(item);
+    if (!trackedId) return;
+    const habitMeta = resolveTrackedHabit(item) || {};
+    const habitId = getHabitIdForTracked(habitMeta, item);
+    const progress =
+      typeof progressOverride === "number"
+        ? progressOverride
+        : progressDrafts[trackedId] ?? (item?.progress ?? 0);
+
+    setProgressSaving((prev) => ({ ...prev, [trackedId]: true }));
+    try {
+      await dispatch(
+        updateTrackedProgress({
+          id: trackedId,
+          habitId,
+          progress,
+          status:
+            forceComplete || progress === (dailyGoal || 0)
+              ? "complete"
+              : "incomplete",
+        })
+      ).unwrap();
+      // Delay refresh slightly to avoid UI jump during rapid slider updates
+      const timer = setTimeout(() => {
+        dispatch(fetchTrackedHabits(selectedDate));
+        setProgressCommitTimers((prev) => {
+          const next = { ...prev };
+          delete next[trackedId];
+          return next;
+        });
+      }, 350);
+      setProgressCommitTimers((prev) => {
+        if (prev[trackedId]) clearTimeout(prev[trackedId]);
+        return { ...prev, [trackedId]: timer };
+      });
+    } catch (error) {
+      toast.error("Failed to update progress");
+    } finally {
+      setProgressSaving((prev) => ({ ...prev, [trackedId]: false }));
     }
   };
 
@@ -290,7 +341,7 @@ const Dashboard = () => {
 
           {/* Stats Card */}
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_12px_35px_-25px_rgba(15,23,42,0.45)] backdrop-blur-lg dark:border-white/5 dark:bg-slate-900/70">
+            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_12px_35px_-25px_rgba(15,23,42,0.45)] backdrop-blur-lg dark:border-white/10 dark:bg-slate-900/70">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Tracked Habits
               </p>
@@ -302,7 +353,7 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-6 shadow-[0_12px_35px_-25px_rgba(5,150,105,0.45)] dark:border-emerald-900/40 dark:from-emerald-950/50 dark:via-slate-900 dark:to-slate-900">
+            <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-6 shadow-[0_12px_35px_-25px_rgba(5,150,105,0.45)] dark:border-white/10 dark:from-emerald-950/50 dark:via-slate-900 dark:to-slate-900">
               <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600/80 dark:text-emerald-300">
                 Completed
               </p>
@@ -314,7 +365,7 @@ const Dashboard = () => {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-orange-50 p-6 shadow-[0_12px_35px_-25px_rgba(244,63,94,0.4)] dark:border-rose-900/30 dark:from-rose-950/50 dark:via-slate-900 dark:to-slate-900">
+            <div className="rounded-3xl border border-rose-100 bg-gradient-to-br from-rose-50 via-white to-orange-50 p-6 shadow-[0_12px_35px_-25px_rgba(244,63,94,0.4)] dark:border-white/10 dark:from-rose-950/50 dark:via-slate-900 dark:to-slate-900">
               <p className="text-xs font-semibold uppercase tracking-wider text-rose-500/90 dark:text-rose-300">
                 Completion Rate
               </p>
@@ -331,7 +382,7 @@ const Dashboard = () => {
 
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
             {/* Left Panel: Habit Library */}
-            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.4)] backdrop-blur-lg dark:border-white/5 dark:bg-slate-900/70">
+            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.4)] backdrop-blur-lg dark:border-white/10 dark:bg-slate-900/70">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -383,20 +434,20 @@ const Dashboard = () => {
                 </div>
               )}
 
-              <div className="mt-6 grid gap-4">
+              <div className="mt-6 grid max-h-[520px] gap-4 overflow-y-auto pr-2">
                 {habits?.map((habit) => (
                   <div
                     key={habit._id || habit.id}
-                    className="group rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition hover:border-rose-200 hover:shadow-[0_12px_35px_-25px_rgba(244,63,94,0.4)] dark:border-slate-700/60 dark:bg-slate-900/60"
+                    className="group rounded-2xl border border-rose-100/70 bg-gradient-to-br from-white via-rose-50/70 to-orange-50/70 p-4 transition hover:border-rose-200 hover:shadow-[0_16px_45px_-30px_rgba(244,63,94,0.45)] dark:border-white/10 dark:from-slate-900 dark:via-slate-900/80 dark:to-slate-950"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                           {habit.name}
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-1 inline-flex items-center gap-2 rounded-full border border-rose-100 bg-white/70 px-3 py-1 text-[11px] font-semibold text-rose-600 shadow-sm dark:border-rose-900/40 dark:bg-slate-900/60 dark:text-rose-200">
                           Goal: {habit.dailyGoal} {habit.unit}
-                        </p>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleAddToDate(habit)}
@@ -427,7 +478,7 @@ const Dashboard = () => {
             </div>
 
             {/* Right Panel: Tracked Habits by Date */}
-            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.4)] backdrop-blur-lg dark:border-white/5 dark:bg-slate-900/70">
+            <div className="rounded-3xl border border-white/40 bg-white/80 p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.4)] backdrop-blur-lg dark:border-white/10 dark:bg-slate-900/70">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -471,52 +522,122 @@ const Dashboard = () => {
                 </div>
               )}
 
-              <div className="mt-6 grid gap-4">
-                {trackedHabits?.map((item) => {
+              <div className="mt-6 grid max-h-[520px] gap-4 overflow-y-auto pr-2">
+                {(trackedHabits || []).filter(Boolean).map((item) => {
                   const habitMeta = resolveTrackedHabit(item) || {};
                   const progress = item.progress ?? 0;
                   const dailyGoal = habitMeta.dailyGoal || 0;
+                  const trackedId = getTrackedHabitId(item);
+                  const displayProgress =
+                    progressDrafts[trackedId] ?? progress;
+                  const isComplete =
+                    dailyGoal > 0 && displayProgress >= dailyGoal;
+                  const progressPercent = dailyGoal
+                    ? Math.round((displayProgress / dailyGoal) * 100)
+                    : 0;
+                  const clampedPercent = Math.min(
+                    100,
+                    Math.max(0, progressPercent)
+                  );
                   return (
                     <div
-                      key={item._id}
-                      className="group rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition hover:border-rose-200 hover:shadow-[0_12px_35px_-25px_rgba(244,63,94,0.4)] dark:border-slate-700/60 dark:bg-slate-900/60"
+                      key={trackedId}
+                      className={`group rounded-2xl border p-4 transition hover:shadow-[0_16px_45px_-30px_rgba(15,23,42,0.35)] ${
+                        isComplete
+                          ? "border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/60 dark:border-white/10 dark:from-emerald-950/30 dark:via-slate-900 dark:to-emerald-950/20"
+                          : "border-slate-200/60 bg-white/70 hover:border-rose-200 dark:border-white/10 dark:bg-slate-900/60"
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                             {habitMeta.name || "Habit"}
                           </h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {progress} / {dailyGoal} {habitMeta.unit || ""}
-                          </p>
+                          <div className="mt-1 inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+                            {displayProgress} / {dailyGoal} {habitMeta.unit || ""}
+                          </div>
                         </div>
-                        {item.status === "complete" ? (
-                          <CheckCircle2 size={18} className="text-green-500" />
-                        ) : (
-                          <Circle size={18} className="text-yellow-500" />
-                        )}
+                        <div
+                          className="relative flex h-11 w-11 items-center justify-center rounded-full p-[2px] shadow-sm"
+                          style={{
+                            background: isComplete
+                              ? "conic-gradient(#10b981 0deg 360deg)"
+                              : `conic-gradient(#f43f5e 0deg ${
+                                  clampedPercent * 3.6
+                                }deg, rgba(226,232,240,0.6) ${
+                                  clampedPercent * 3.6
+                                }deg 360deg)`,
+                          }}
+                        >
+                          <div
+                            className={`flex h-full w-full items-center justify-center rounded-full border text-[11px] font-semibold ${
+                              isComplete
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/30 dark:text-emerald-200"
+                                : "border-white/70 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                            }`}
+                          >
+                            {isComplete ? (
+                              <CheckCircle2 size={16} />
+                            ) : (
+                              <span>{clampedPercent}%</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="mt-3">
-                        <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800">
-                          <div
-                            className="h-2 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-orange-400 transition-all"
-                            style={{
-                              width: `${
-                                dailyGoal ? (progress / dailyGoal) * 100 : 0
-                              }%`,
-                            }}
+                        <div className="mt-3 flex items-center gap-3">
+                          <input
+                            type="range"
+                            min={0}
+                            max={dailyGoal}
+                            step={1}
+                            value={displayProgress}
+                            disabled={!dailyGoal || progressSaving[trackedId]}
+                            onChange={(e) =>
+                              handleProgressChange(
+                                trackedId,
+                                Number(e.target.value)
+                              )
+                            }
+                            onMouseUp={() =>
+                              handleProgressCommit(item, dailyGoal)
+                            }
+                            onTouchEnd={() =>
+                              handleProgressCommit(item, dailyGoal)
+                            }
+                            onBlur={() =>
+                              handleProgressCommit(item, dailyGoal)
+                            }
+                            className={`h-2 w-full cursor-pointer accent-rose-500 disabled:cursor-not-allowed ${
+                              isComplete ? "accent-emerald-500" : ""
+                            }`}
                           />
+                          <span className="min-w-[64px] text-right text-xs text-slate-500 dark:text-slate-400">
+                            {displayProgress} {habitMeta.unit || ""}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!dailyGoal) return;
+                              handleProgressChange(trackedId, dailyGoal);
+                              handleProgressCommit(
+                                item,
+                                dailyGoal,
+                                dailyGoal,
+                                true
+                              );
+                            }}
+                            disabled={!dailyGoal || progressSaving[trackedId]}
+                            className="inline-flex cursor-pointer items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-2 text-emerald-600 transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/40 dark:bg-emerald-900/30 dark:text-emerald-300"
+                            title="Mark as done"
+                          >
+                            <CheckCircle2 size={16} />
+                          </button>
                         </div>
                       </div>
 
                       <div className="mt-4 flex justify-end gap-2">
-                        <button
-                          onClick={() => handleEditProgress(item)}
-                          className="cursor-pointer rounded-full border border-slate-200 bg-white/80 p-2 text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                        >
-                          <Pencil size={16} />
-                        </button>
                         <button
                           onClick={() => handleDeleteClick(item, "tracked")}
                           className="cursor-pointer rounded-full border border-red-200/70 bg-red-50/80 p-2 text-red-500 transition hover:bg-red-100 dark:border-red-900/50 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/60"

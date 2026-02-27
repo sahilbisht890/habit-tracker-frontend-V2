@@ -106,6 +106,7 @@ const habitTrackerSlice = createSlice({
       })
       // UPDATE
       .addCase(updateTrackedProgress.fulfilled, (state, action) => {
+        if (!action.payload) return;
         const index = state.items.findIndex(
           (item) => item._id === action.payload?._id
         );

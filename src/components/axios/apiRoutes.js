@@ -3,7 +3,7 @@ const endpoints = {
     register: '/auth/signup',
     refreshToken: '/auth/refresh-token',
     logout: '/auth/logout',
-    updateMode: '/user/update-mode',
+    updateMode: '/auth/update-mode',
 
     checkAuthentication : '/auth/check-auth',
     sendVerificationOtp: '/auth/send-verification-otp',

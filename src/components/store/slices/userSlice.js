@@ -80,7 +80,7 @@ const userSlice = createSlice({
     userData: null,
     isAuthenticated: false,
     loading: false,
-    authChecking: false,
+    authChecking: true,
     error: null,
   },
   reducers: {
