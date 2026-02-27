@@ -84,7 +84,9 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleGetStarted = () => {};
+  const handleGetStarted = () => {
+    router.push("/auth");
+  };
   const handleToggleMode = async () => {
     const nextMode = isDark ? "light" : "dark";
     if (!userData || typeof userData.mode === "undefined") {

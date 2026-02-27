@@ -55,8 +55,8 @@ const MobileNavbar = () => {
     };
   }, [isOpen]);
 
-  const handleShowModal = () => {
-    setShowModal(true);
+  const handleGetStarted = () => {
+    router.push("/auth");
     setIsOpen(false);
   };
   const handleToggleMode = async () => {
@@ -231,7 +231,7 @@ const MobileNavbar = () => {
                         className="w-[283px] h-[44px] rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-orange-400 text-white font-manrope font-semibold shadow-lg shadow-rose-500/30 cursor-pointer"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={handleShowModal}
+                        onClick={handleGetStarted}
                       >
                         Get Started
                       </motion.button>
