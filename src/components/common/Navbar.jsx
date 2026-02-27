@@ -5,6 +5,7 @@ import { ChevronDown, Moon, Sun, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser, updateMode } from "@/components/store/slices/userSlice";
+import logo from "../../../public/images/logo.svg";
 
 const Navbar = () => {
   const [activeRoute, setActiveRoute] = useState("Home");
@@ -114,7 +115,7 @@ const Navbar = () => {
         <div className="flex items-center md:gap-4 xl:gap-24">
 <div className="relative flex justify-center items-center w-[100px] h-[30px] md:w-[130px] md:h-[40px] xl:w-[140px] xl:h-[40px]">
   <Image
-    src="/images/logo.png"
+    src={logo}
     alt="Logo"
     fill
     priority

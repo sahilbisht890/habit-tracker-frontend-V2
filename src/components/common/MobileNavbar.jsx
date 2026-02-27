@@ -90,12 +90,12 @@ const MobileNavbar = () => {
         {/* Navbar Header */}
         <div className="flex justify-between items-center p-4 mobileNavbar border-b border-white/40 fixed w-full z-[2000] bg-white/80 backdrop-blur-xl">
           <div className="flex items-center space-x-2">
-            {/* <img
+            <img
               onClick={() => handleNavigation("/")}
-              src="/images/logo.png"
+              src="/images/logo.svg"
               alt="Logo"
               className="w-[165px] h-[47px] cursor-pointer"
-            /> */}
+            />
           </div>
           {isOpen ? (
             <button onClick={() => setIsOpen(false)} className="cursor-pointer">
