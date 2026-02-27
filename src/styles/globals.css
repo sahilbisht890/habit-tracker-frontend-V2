@@ -34,9 +34,9 @@ body {
 
 .authbg {
   background:
-    radial-gradient(1200px 600px at 20% 10%, rgba(255, 214, 165, 0.45), transparent 60%),
-    radial-gradient(900px 500px at 85% 20%, rgba(255, 182, 193, 0.45), transparent 55%),
-    linear-gradient(140deg, #fff7ed 0%, #ffe4e6 45%, #e0f2fe 100%);
+    radial-gradient(1200px 600px at 20% 10%, rgba(255, 214, 165, 0.22), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(255, 182, 193, 0.2), transparent 55%),
+    linear-gradient(140deg, #1f2937 0%, #111827 45%, #0b1220 100%);
 }
 
 .authform input:-webkit-autofill,
