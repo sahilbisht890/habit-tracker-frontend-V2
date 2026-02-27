@@ -34,3 +34,21 @@ npm run dev
 Create a `.env` file and set:
 - `NEXT_PUBLIC_APP_API_BASE_URL`
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+
+#Screenshots 
+<img width="1920" height="5118" alt="screencapture-tracko-v2-netlify-app-2026-02-27-15_00_31" src="https://github.com/user-attachments/assets/6245f17f-93ca-43fd-abcf-0e420663f375" />
+<img width="1920" height="5118" alt="screencapture-tracko-v2-netlify-app-2026-02-27-15_04_29" src="https://github.com/user-attachments/assets/012b62ad-18a0-4c4b-9e7f-45436e1d7e99" />
+<img width="1914" height="859" alt="Screenshot 2026-02-27 150157" src="https://github.com/user-attachments/assets/25751dcb-bc1c-4c21-8e85-ae2f51a02554" />
+<img width="1920" height="2445" alt="screencapture-tracko-v2-netlify-app-FAQ-2026-02-27-15_05_02" src="https://github.com/user-attachments/assets/06edaf18-adf2-4d0c-a7b4-93ebd346634e" />
+<img width="1920" height="2445" alt="screencapture-tracko-v2-netlify-app-FAQ-2026-02-27-15_05_02" src="https://github.com/user-attachments/assets/a1f8e1e8-57e7-49d7-a78d-90e764fedcea" />
+<img width="1903" height="853" alt="Screenshot 2026-02-27 150644" src="https://github.com/user-attachments/assets/f2b85ea0-ed61-4966-960d-fe624a798d17" />
+<img width="1859" height="845" alt="Screenshot 2026-02-27 150621" src="https://github.com/user-attachments/assets/6642858a-b001-4785-81ae-1da983b2bb16" />
+<img width="1213" height="734" alt="Screenshot 2026-02-27 150727" src="https://github.com/user-attachments/assets/f26bc1f8-f0e4-447a-b231-51c2e6b6ffc6" />
+
+
+
+
+
+
+
+
